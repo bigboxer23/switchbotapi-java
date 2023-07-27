@@ -1,4 +1,4 @@
-package com.bigboxer23.switch_bot;
+package com.bigboxer23.switch_bot.data;
 
 import lombok.Data;
 
