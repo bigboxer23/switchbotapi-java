@@ -1,6 +1,5 @@
 package com.bigboxer23.switch_bot;
 
-import com.bigboxer23.utils.http.OkHttpUtil;
 import com.bigboxer23.utils.http.RequestBuilderCallback;
 import com.squareup.moshi.Moshi;
 import java.io.IOException;
@@ -11,16 +10,19 @@ import java.time.Instant;
 import java.util.*;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import okhttp3.Response;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** */
+@Getter
 public class SwitchBotApi {
 	private static final Logger logger = LoggerFactory.getLogger(SwitchBotApi.class);
-	public static final String baseUrl = "https://api.switch-bot.com/";
+	protected static final String baseUrl = "https://api.switch-bot.com/";
 
 	private static SwitchBotApi instance;
+
+	private final SwitchBotDeviceApi deviceApi;
 
 	private final String token;
 	private final String secret;
@@ -30,6 +32,7 @@ public class SwitchBotApi {
 	private SwitchBotApi(String token, String secret) {
 		this.secret = secret;
 		this.token = token;
+		deviceApi = new SwitchBotDeviceApi(this);
 	}
 
 	public static SwitchBotApi getInstance(String token, String secret) throws IOException {
@@ -43,21 +46,11 @@ public class SwitchBotApi {
 		});
 	}
 
-	public List<Device> getDevices() throws IOException {
-		try (Response response = OkHttpUtil.getSynchronous(baseUrl + "v1.1/devices", addAuth())) {
-			if (!response.isSuccessful()) {
-				throw new IOException(response.message());
-			}
-			ApiResponse apiResponse =
-					moshi.adapter(ApiResponse.class).fromJson(response.body().string());
-			return Optional.ofNullable(apiResponse)
-					.map(ApiResponse::getBody)
-					.map(ApiResponseBody::getDeviceList)
-					.orElse(Collections.emptyList());
-		}
+	protected Moshi getMoshi() {
+		return moshi;
 	}
 
-	private RequestBuilderCallback addAuth() {
+	protected RequestBuilderCallback addAuth() {
 		return builder -> {
 			String nonce = UUID.randomUUID().toString();
 			String time = "" + Instant.now().toEpochMilli();

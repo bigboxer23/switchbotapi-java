@@ -1,8 +1,8 @@
 package com.bigboxer23.switch_bot;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
+import com.bigboxer23.switch_bot.data.Device;
 import java.io.IOException;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -14,10 +14,34 @@ public class SwitchBotApiTest {
 	private final String secret = System.getenv("SwitchBotSecret");
 
 	@Test
-	public void getDevices() throws IOException {
+	public void testGetDevices() throws IOException {
 		SwitchBotApi instance = SwitchBotApi.getInstance(token, secret);
-		List<Device> devices = instance.getDevices();
+		List<Device> devices = instance.getDeviceApi().getDevices();
 		assertFalse(devices.isEmpty());
 		assertNotNull(devices.get(0).getDeviceId());
+	}
+
+	@Test
+	public void testDeviceStatus() throws IOException {
+		SwitchBotApi instance = SwitchBotApi.getInstance(token, secret);
+		assertNull(instance.getDeviceApi().getDeviceStatus("123"));
+		for (Device device : instance.getDeviceApi().getDevices()) {
+			assertNotNull(device.getDeviceId());
+			Device status = instance.getDeviceApi().getDeviceStatus(device.getDeviceId());
+			switch (status.getDeviceType()) {
+				case "Hub 2", "Meter" -> {
+					assertTrue(status.getTemperature() > 0);
+					assertTrue(status.getHumidity() > 0);
+					if ("Hub 2".equals(status.getDeviceType())) {
+						assertTrue(status.getLightLevel() >= 0);
+					}
+				}
+				case "Curtain" -> {
+					assertTrue(status.getSlidePosition() >= 0);
+					assertTrue(status.getMoving() >= 0);
+					assertTrue(status.getBattery() >= 0);
+				}
+			}
+		}
 	}
 }
