@@ -3,7 +3,7 @@ package com.bigboxer23.switch_bot;
 import com.bigboxer23.utils.http.OkHttpUtil;
 import com.bigboxer23.utils.http.RequestBuilderCallback;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
@@ -13,9 +13,12 @@ import java.util.UUID;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import okhttp3.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** */
 public class SwitchBotApi {
+	private static final Logger logger = LoggerFactory.getLogger(SwitchBotApi.class);
 	public static final String baseUrl = "https://api.switch-bot.com/";
 
 	private static SwitchBotApi instance;
@@ -29,7 +32,10 @@ public class SwitchBotApi {
 	}
 
 	public static SwitchBotApi getInstance(String token, String secret) {
-		return Optional.ofNullable(instance).orElseGet(() -> new SwitchBotApi(token, secret));
+		return Optional.ofNullable(instance).orElseGet(() -> {
+			instance = new SwitchBotApi(token, secret);
+			return instance;
+		});
 	}
 
 	public void getDevices() throws IOException {
@@ -44,16 +50,17 @@ public class SwitchBotApi {
 			String time = "" + Instant.now().toEpochMilli();
 			String data = token + time + nonce;
 			try {
-				SecretKeySpec secretKeySpec = new SecretKeySpec(secret.getBytes("UTF-8"), "HmacSHA256");
+				SecretKeySpec secretKeySpec = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
 				Mac mac = Mac.getInstance("HmacSHA256");
 				mac.init(secretKeySpec);
-				String signature = new String(Base64.getEncoder().encode(mac.doFinal(data.getBytes("UTF-8"))));
+				String signature =
+						new String(Base64.getEncoder().encode(mac.doFinal(data.getBytes(StandardCharsets.UTF_8))));
 				builder.addHeader("Authorization", token)
 						.addHeader("sign", signature)
 						.addHeader("nonce", nonce)
 						.addHeader("t", time);
-			} catch (UnsupportedEncodingException | NoSuchAlgorithmException | InvalidKeyException theE) {
-				theE.printStackTrace();
+			} catch (NoSuchAlgorithmException | InvalidKeyException e) {
+				logger.warn("exception with auth: ", e);
 			}
 			return builder;
 		};
