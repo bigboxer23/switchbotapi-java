@@ -2,14 +2,13 @@ package com.bigboxer23.switch_bot;
 
 import com.bigboxer23.utils.http.OkHttpUtil;
 import com.bigboxer23.utils.http.RequestBuilderCallback;
+import com.squareup.moshi.Moshi;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
-import java.util.Base64;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import okhttp3.Response;
@@ -23,24 +22,40 @@ public class SwitchBotApi {
 
 	private static SwitchBotApi instance;
 
-	private String token;
-	private String secret;
+	private final String token;
+	private final String secret;
+
+	private final Moshi moshi = new Moshi.Builder().build();
 
 	private SwitchBotApi(String token, String secret) {
 		this.secret = secret;
 		this.token = token;
 	}
 
-	public static SwitchBotApi getInstance(String token, String secret) {
+	public static SwitchBotApi getInstance(String token, String secret) throws IOException
+	{
+		if (token == null || secret == null)
+		{
+			logger.error("need to define token and secret values.");
+			throw new IOException("need to define token and secret values.");
+		}
 		return Optional.ofNullable(instance).orElseGet(() -> {
 			instance = new SwitchBotApi(token, secret);
 			return instance;
 		});
 	}
 
-	public void getDevices() throws IOException {
+	public List<Device> getDevices() throws IOException {
 		try (Response response = OkHttpUtil.getSynchronous(baseUrl + "v1.1/devices", addAuth())) {
-			System.out.println(response.body().string());
+			if (!response.isSuccessful()) {
+				throw new IOException(response.message());
+			}
+			ApiResponse apiResponse =
+					moshi.adapter(ApiResponse.class).fromJson(response.body().string());
+			return Optional.ofNullable(apiResponse)
+					.map(ApiResponse::getBody)
+					.map(ApiResponseBody::getDeviceList)
+					.orElse(Collections.emptyList());
 		}
 	}
 
