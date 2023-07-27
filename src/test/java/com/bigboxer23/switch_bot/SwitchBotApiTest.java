@@ -9,9 +9,9 @@ import org.junit.jupiter.api.Test;
 
 /** Need to define environment variables for SwitchBotToken/SwitchBotSecret to run tests */
 public class SwitchBotApiTest {
-	private String token = System.getenv("SwitchBotToken");
+	private final String token = System.getenv("SwitchBotToken");
 
-	private String secret = System.getenv("SwitchBotSecret");
+	private final String secret = System.getenv("SwitchBotSecret");
 
 	@Test
 	public void getDevices() throws IOException {
