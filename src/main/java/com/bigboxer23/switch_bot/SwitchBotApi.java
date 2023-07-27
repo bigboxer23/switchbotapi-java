@@ -32,10 +32,8 @@ public class SwitchBotApi {
 		this.token = token;
 	}
 
-	public static SwitchBotApi getInstance(String token, String secret) throws IOException
-	{
-		if (token == null || secret == null)
-		{
+	public static SwitchBotApi getInstance(String token, String secret) throws IOException {
+		if (token == null || secret == null) {
 			logger.error("need to define token and secret values.");
 			throw new IOException("need to define token and secret values.");
 		}
