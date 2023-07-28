@@ -4,11 +4,18 @@
 
   <groupId>com.bigboxer23</groupId>
   <artifactId>SwitchBotApi-java</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.6</version>
 
   <name>SwitchBotApi-java</name>
   <url>https://github.com/bigboxer23/SwitchBotAPI-java</url>
 
+  <distributionManagement>
+    <repository>
+      <id>github</id>
+      <name>GitHub Packages</name>
+      <url>https://maven.pkg.github.com/bigboxer23/SwitchBotAPI-java</url>
+    </repository>
+  </distributionManagement>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <java.version>17</java.version>
