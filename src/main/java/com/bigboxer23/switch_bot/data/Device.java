@@ -26,4 +26,6 @@ public class Device {
 	private int moving;
 
 	private int slidePosition;
+
+	private boolean master;
 }
