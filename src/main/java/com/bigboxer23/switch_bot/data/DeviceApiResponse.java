@@ -4,7 +4,7 @@ import lombok.Data;
 
 /** */
 @Data
-public class DeviceApiResponse {
+public class DeviceApiResponse implements IApiResponse {
 	private int statusCode;
 
 	private Device body;

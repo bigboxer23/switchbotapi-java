@@ -1,5 +1,6 @@
 package com.bigboxer23.switch_bot;
 
+import com.bigboxer23.switch_bot.data.IApiResponse;
 import com.bigboxer23.utils.http.RequestBuilderCallback;
 import com.squareup.moshi.Moshi;
 import java.io.IOException;
@@ -70,5 +71,19 @@ public class SwitchBotApi {
 			}
 			return builder;
 		};
+	}
+
+	/**
+	 * add standardized logging and error checking on request
+	 *
+	 * @param apiResponse the API response
+	 * @return true if error occurs
+	 */
+	protected boolean checkForError(IApiResponse apiResponse) {
+		if (Optional.ofNullable(apiResponse).map(IApiResponse::getStatusCode).orElse(-1) != 100) {
+			logger.error("error code: " + apiResponse.getStatusCode() + " : " + apiResponse.getMessage());
+			return true;
+		}
+		return false;
 	}
 }

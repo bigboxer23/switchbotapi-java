@@ -4,7 +4,7 @@ import lombok.Data;
 
 /** */
 @Data
-public class ApiResponse {
+public class ApiResponse implements IApiResponse {
 	private int statusCode;
 
 	private ApiResponseBody body;
