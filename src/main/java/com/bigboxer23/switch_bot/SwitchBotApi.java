@@ -80,10 +80,17 @@ public class SwitchBotApi {
 	 * @return true if error occurs
 	 */
 	protected boolean checkForError(IApiResponse apiResponse) {
-		if (Optional.ofNullable(apiResponse).map(IApiResponse::getStatusCode).orElse(-1) != 100) {
-			logger.error("error code: " + apiResponse.getStatusCode() + " : " + apiResponse.getMessage());
-			return true;
-		}
-		return false;
+		return Optional.ofNullable(apiResponse)
+				.map(response -> {
+					if (response.getStatusCode() != 100) {
+						logger.error("error code: " + response.getStatusCode() + " : " + response.getMessage());
+						return false;
+					}
+					return true;
+				})
+				.orElseGet(() -> {
+					logger.error("null api response");
+					return false;
+				});
 	}
 }
