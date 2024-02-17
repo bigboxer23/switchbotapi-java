@@ -2,11 +2,8 @@ package com.bigboxer23.switch_bot;
 
 import com.bigboxer23.switch_bot.data.DeviceCommand;
 
-/**
- *
- */
-public interface IDeviceCommands
-{
+/** */
+public interface IDeviceCommands {
 	String TURN_OFF = "turnOff";
 
 	String TURN_ON = "turnOn";

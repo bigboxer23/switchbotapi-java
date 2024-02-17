@@ -24,7 +24,13 @@ public class SwitchBotApiTest {
 	@Test
 	public void testDeviceStatus() throws IOException {
 		SwitchBotApi instance = SwitchBotApi.getInstance(token, secret);
-		assertNull(instance.getDeviceApi().getDeviceStatus("123"));
+
+		try {
+			instance.getDeviceApi().getDeviceStatus("123");
+			fail();
+		} catch (IOException e) {
+
+		}
 		for (Device device : instance.getDeviceApi().getDevices()) {
 			assertNotNull(device.getDeviceId());
 			Device status = instance.getDeviceApi().getDeviceStatus(device.getDeviceId());
@@ -42,6 +48,13 @@ public class SwitchBotApiTest {
 					assertTrue(status.getMoving() >= 0);
 					assertTrue(status.getBattery() >= 0);
 				}
+				case IDeviceTypes.PLUG_MINI -> {
+					assertTrue("on".equals(status.getPower()) || "off".equals(status.getPower()));
+					assertTrue(status.getVoltage() > 0);
+					assertTrue(status.getWatts() > -1);
+					assertTrue(status.getElectricityOfDay() > 0);
+					assertTrue(status.getElectricCurrent() > -1);
+				}
 			}
 		}
 	}
@@ -56,7 +69,6 @@ public class SwitchBotApiTest {
 				.orElse(null);
 		assertNotNull(curtain);
 		assertNotNull(curtain.getDeviceId());
-		instance.getDeviceApi()
-				.sendDeviceControlCommands(curtain.getDeviceId(), IDeviceCommands.CLOSE_CURTAIN);
+		instance.getDeviceApi().sendDeviceControlCommands(curtain.getDeviceId(), IDeviceCommands.CLOSE_CURTAIN);
 	}
 }

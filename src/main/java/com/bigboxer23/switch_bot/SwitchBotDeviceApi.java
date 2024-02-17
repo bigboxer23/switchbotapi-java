@@ -5,9 +5,7 @@ import com.bigboxer23.utils.http.OkHttpUtil;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.slf4j.Logger;
@@ -21,6 +19,7 @@ public class SwitchBotDeviceApi {
 	protected SwitchBotDeviceApi(SwitchBotApi provider) {
 		this.provider = provider;
 	}
+
 	/**
 	 * @see <a href="https://github.com/OpenWonderLabs/SwitchBotAPI#get-device-list">Get device
 	 *     list</a>
@@ -29,19 +28,7 @@ public class SwitchBotDeviceApi {
 	 */
 	public List<Device> getDevices() throws IOException {
 		try (Response response = OkHttpUtil.getSynchronous(SwitchBotApi.baseUrl + "v1.1/devices", provider.addAuth())) {
-			if (!response.isSuccessful()) {
-				throw new IOException(response.message());
-			}
-			ApiResponse apiResponse = provider.getMoshi()
-					.adapter(ApiResponse.class)
-					.fromJson(response.body().string());
-			if (provider.checkForError(apiResponse)) {
-				return Collections.emptyList();
-			}
-			return Optional.ofNullable(apiResponse)
-					.map(ApiResponse::getBody)
-					.map(ApiResponseBody::getDeviceList)
-					.orElse(Collections.emptyList());
+			return parseResponse(response, ApiResponse.class).getBody().getDeviceList();
 		}
 	}
 
@@ -57,22 +44,7 @@ public class SwitchBotDeviceApi {
 		}
 		try (Response response = OkHttpUtil.getSynchronous(
 				SwitchBotApi.baseUrl + "v1.1/devices/" + deviceId + "/status", provider.addAuth())) {
-			if (!response.isSuccessful()) {
-				throw new IOException(response.message());
-			}
-			DeviceApiResponse apiResponse = provider.getMoshi()
-					.adapter(DeviceApiResponse.class)
-					.fromJson(response.body().string());
-			if (Optional.ofNullable(apiResponse)
-							.map(DeviceApiResponse::getStatusCode)
-							.orElse(-1)
-					!= 100) {
-				logger.error("error code: " + apiResponse.getStatusCode() + " : " + apiResponse.getMessage());
-				return null;
-			}
-			return provider.checkForError(apiResponse)
-					? null
-					: Optional.of(apiResponse).map(DeviceApiResponse::getBody).orElse(null);
+			return parseResponse(response, DeviceApiResponse.class).getBody();
 		}
 	}
 
@@ -89,13 +61,20 @@ public class SwitchBotDeviceApi {
 				RequestBody.create(URLDecoder.decode(stringCommand, StandardCharsets.UTF_8.displayName())
 						.getBytes(StandardCharsets.UTF_8)),
 				provider.addAuth())) {
-			if (!response.isSuccessful()) {
-				throw new IOException(response.message());
-			}
-			DeviceApiResponse apiResponse = provider.getMoshi()
-					.adapter(DeviceApiResponse.class)
-					.fromJson(response.body().string());
-			provider.checkForError(apiResponse);
+			parseResponse(response, DeviceApiResponse.class);
 		}
+	}
+
+	private <T extends IApiResponse> T parseResponse(Response response, Class<T> clazz) throws IOException {
+		if (!response.isSuccessful()) {
+			throw new IOException(response.code() + " " + response.message() + " "
+					+ response.body().string());
+		}
+		String body = response.body().string();
+		T apiResponse = provider.getMoshi().adapter(clazz).fromJson(body);
+		if (!provider.checkForError(apiResponse)) {
+			throw new IOException(response.code() + " " + response.message() + " " + body);
+		}
+		return apiResponse;
 	}
 }
