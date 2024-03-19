@@ -8,7 +8,11 @@ public interface IDeviceCommands {
 
 	String TURN_ON = "turnOn";
 
-	DeviceCommand CLOSE_CURTAIN = new DeviceCommand(TURN_OFF, "default");
+	DeviceCommand CURTAIN_CLOSE = new DeviceCommand(TURN_OFF, "default");
 
-	DeviceCommand OPEN_CURTAIN = new DeviceCommand(TURN_ON, "default");
+	DeviceCommand CURTAIN_OPEN = new DeviceCommand(TURN_ON, "default");
+
+	DeviceCommand PLUG_MINI_OFF = new DeviceCommand(TURN_OFF, "default");
+
+	DeviceCommand PLUG_MINI_ON = new DeviceCommand(TURN_ON, "default");
 }

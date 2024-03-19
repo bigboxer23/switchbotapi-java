@@ -3,7 +3,6 @@ package com.bigboxer23.switch_bot;
 import com.bigboxer23.switch_bot.data.IApiResponse;
 import com.bigboxer23.utils.http.RequestBuilderCallback;
 import com.squareup.moshi.Moshi;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -36,10 +35,10 @@ public class SwitchBotApi {
 		deviceApi = new SwitchBotDeviceApi(this);
 	}
 
-	public static SwitchBotApi getInstance(String token, String secret) throws IOException {
+	public static SwitchBotApi getInstance(String token, String secret) {
 		if (token == null || secret == null) {
 			logger.error("need to define token and secret values.");
-			throw new IOException("need to define token and secret values.");
+			throw new RuntimeException("need to define token and secret values.");
 		}
 		return Optional.ofNullable(instance).orElseGet(() -> {
 			instance = new SwitchBotApi(token, secret);

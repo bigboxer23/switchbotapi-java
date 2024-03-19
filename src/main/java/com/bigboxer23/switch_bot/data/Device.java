@@ -24,7 +24,7 @@ public class Device {
 
 	private boolean group;
 
-	private int moving;
+	private boolean moving;
 
 	private int slidePosition;
 
@@ -40,4 +40,8 @@ public class Device {
 	private int electricityOfDay;
 
 	private float electricCurrent; // amps / 10
+
+	public boolean isPowerOn() {
+		return "on".equalsIgnoreCase(getPower());
+	}
 }
