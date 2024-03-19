@@ -27,14 +27,32 @@ System.out.println("" + status.getBattery());
 ```
 SwitchBotApi instance = SwitchBotApi.getInstance(token, secret);
 instance.getDeviceApi().getDevices().stream()
-        .filter(device -> "Curtain".equals(device.getDeviceType()))
+        .filter(device -> IDeviceTypes.CURTAIN.equals(device.getDeviceType()))
         .filter(Device::isMaster)
         .findAny()
         .ifPresent(curtain -> {
             try {
                 instance.getDeviceApi()
                         .sendDeviceControlCommands(
-                                curtain.getDeviceId(), new DeviceCommand("turnOff", "default"));
+                                curtain.getDeviceId(), IDeviceCommands.CURTAIN_CLOSE);
+            } catch (IOException theE) {
+                theE.printStackTrace();
+            }
+            });
+```
+
+4. Send command to turn on a plug mini
+
+```
+SwitchBotApi instance = SwitchBotApi.getInstance(token, secret);
+instance.getDeviceApi().getDevices().stream()
+        .filter(device -> IDeviceTypes.PLUG_MINI.equals(device.getDeviceType()))
+        .findAny()
+        .ifPresent(plug -> {
+            try {
+                instance.getDeviceApi()
+                        .sendDeviceControlCommands(
+                                plug.getDeviceId(), IDeviceCommands.PLUG_MINI_ON);
             } catch (IOException theE) {
                 theE.printStackTrace();
             }
