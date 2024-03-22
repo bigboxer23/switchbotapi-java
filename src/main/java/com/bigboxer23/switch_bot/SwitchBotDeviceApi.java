@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Optional;
+
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.slf4j.Logger;
@@ -65,16 +67,20 @@ public class SwitchBotDeviceApi {
 		}
 	}
 
+	/**
+	 * API is a bit weird, and need to check in returned body for status code as well
+	 *
+	 * @param response
+	 * @param clazz
+	 * @return
+	 * @param <T>
+	 * @throws IOException
+	 */
 	private <T extends IApiResponse> T parseResponse(Response response, Class<T> clazz) throws IOException {
-		if (!response.isSuccessful()) {
-			throw new IOException(response.code() + " " + response.message() + " "
-					+ response.body().string());
+		Optional<T> apiResponse = OkHttpUtil.getBody(response, clazz);
+		if (apiResponse.isEmpty() || !provider.checkForError(apiResponse.get())) {
+			throw new IOException(response.code() + " " + response.message());
 		}
-		String body = response.body().string();
-		T apiResponse = provider.getMoshi().adapter(clazz).fromJson(body);
-		if (!provider.checkForError(apiResponse)) {
-			throw new IOException(response.code() + " " + response.message() + " " + body);
-		}
-		return apiResponse;
+		return apiResponse.get();
 	}
 }
