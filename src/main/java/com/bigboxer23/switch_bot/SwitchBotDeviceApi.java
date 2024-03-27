@@ -7,7 +7,6 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
-
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.slf4j.Logger;
@@ -78,7 +77,7 @@ public class SwitchBotDeviceApi {
 	 */
 	private <T extends IApiResponse> T parseResponse(Response response, Class<T> clazz) throws IOException {
 		Optional<T> apiResponse = OkHttpUtil.getBody(response, clazz);
-		if (apiResponse.isEmpty() || !provider.checkForError(apiResponse.get())) {
+		if (!provider.checkForError(response, (Optional<IApiResponse>) apiResponse)) {
 			throw new IOException(response.code() + " " + response.message());
 		}
 		return apiResponse.get();

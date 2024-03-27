@@ -11,6 +11,7 @@ import java.util.*;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import lombok.Getter;
+import okhttp3.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,17 +79,17 @@ public class SwitchBotApi {
 	 * @param apiResponse the API response
 	 * @return true if error occurs
 	 */
-	protected boolean checkForError(IApiResponse apiResponse) {
-		return Optional.ofNullable(apiResponse)
-				.map(response -> {
-					if (response.getStatusCode() != 100) {
-						logger.error("error code: " + response.getStatusCode() + " : " + response.getMessage());
+	protected boolean checkForError(Response response, Optional<IApiResponse> apiResponse) {
+		return apiResponse
+				.map(api -> {
+					if (api.getStatusCode() != 100) {
+						logger.error("error code: " + api.getStatusCode() + " : " + api.getMessage());
 						return false;
 					}
 					return true;
 				})
 				.orElseGet(() -> {
-					logger.error("null api response");
+					logger.error("Error calling switchbot api: " + response.code() + " " + response.message());
 					return false;
 				});
 	}
