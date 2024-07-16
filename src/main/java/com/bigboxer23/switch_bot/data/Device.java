@@ -41,6 +41,17 @@ public class Device {
 
 	private float electricCurrent; // amps / 10
 
+	@Json(name = "status")
+	private int waterDetectorStatus;
+
+	public boolean isDry() {
+		return waterDetectorStatus == 0;
+	}
+
+	public boolean isWet() {
+		return waterDetectorStatus == 1;
+	}
+
 	public boolean isPowerOn() {
 		return "on".equalsIgnoreCase(getPower());
 	}

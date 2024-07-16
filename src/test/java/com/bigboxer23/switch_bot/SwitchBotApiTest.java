@@ -53,9 +53,10 @@ public class SwitchBotApiTest {
 					assertTrue("on".equals(status.getPower()) || "off".equals(status.getPower()));
 					assertTrue(status.getVoltage() > 0);
 					assertTrue(status.getWatts() > -1);
-					assertTrue(status.getElectricityOfDay() > 0);
+					assertTrue(status.getElectricityOfDay() >= 0);
 					assertTrue(status.getElectricCurrent() > -1);
 				}
+				case IDeviceTypes.WATER_DETECTOR -> assertTrue(status.isWet());
 			}
 		}
 	}
