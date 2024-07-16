@@ -9,4 +9,6 @@ public interface IDeviceTypes {
 	String WOIOSENSOR = "WoIOSensor";
 
 	String PLUG_MINI = "Plug Mini (US)";
+
+	String WATER_DETECTOR = "Water Detector";
 }
