@@ -25,6 +25,15 @@ public class SwitchBotApiTest {
 	}
 
 	@Test
+	public void getDeviceNameFromId() throws IOException {
+		Device device = instance.getDeviceApi().getDevices().get(0);
+		String deviceName = instance.getDeviceApi().getDeviceNameFromId(device.getDeviceId());
+		assertEquals(device.getDeviceName(), deviceName);
+		assertEquals("test", instance.getDeviceApi().getDeviceNameFromId("test"));
+		assertNull(instance.getDeviceApi().getDeviceNameFromId(null));
+	}
+
+	@Test
 	public void testDeviceStatus() throws IOException {
 		try {
 			instance.getDeviceApi().getDeviceStatus("123");

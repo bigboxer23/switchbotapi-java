@@ -2,11 +2,15 @@ package com.bigboxer23.switch_bot;
 
 import com.bigboxer23.switch_bot.data.*;
 import com.bigboxer23.utils.http.OkHttpUtil;
+import com.bigboxer23.utils.time.ITimeConstants;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.slf4j.Logger;
@@ -17,8 +21,36 @@ public class SwitchBotDeviceApi {
 	private static final Logger logger = LoggerFactory.getLogger(SwitchBotDeviceApi.class);
 	private final SwitchBotApi provider;
 
+	private Map<String, String> deviceIdToNames;
+
+	private long deviceIdToNamesCacheTime = -1;
+
 	protected SwitchBotDeviceApi(SwitchBotApi provider) {
 		this.provider = provider;
+		refreshDeviceNameMap();
+	}
+
+	public String getDeviceNameFromId(String deviceId) {
+		refreshDeviceNameMap();
+		return Optional.ofNullable(deviceIdToNames)
+				.map(m -> m.getOrDefault(deviceId, deviceId))
+				.orElse(deviceId);
+	}
+
+	private synchronized void refreshDeviceNameMap() {
+		if (deviceIdToNames != null && (System.currentTimeMillis() - ITimeConstants.HOUR) < deviceIdToNamesCacheTime) {
+			return;
+		}
+		try {
+			logger.info("Refreshing device id/name map...");
+			deviceIdToNames = Collections.unmodifiableMap(
+					getDevices().stream().collect(Collectors.toMap(Device::getDeviceId, Device::getDeviceName)));
+			deviceIdToNamesCacheTime = System.currentTimeMillis();
+		} catch (IOException e) {
+			logger.error("Failed to refresh device names.", e);
+			deviceIdToNames = null;
+			deviceIdToNamesCacheTime = -1;
+		}
 	}
 
 	/**
