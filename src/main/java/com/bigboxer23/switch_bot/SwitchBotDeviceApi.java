@@ -86,15 +86,14 @@ public class SwitchBotDeviceApi {
 	 *     href="https://github.com/OpenWonderLabs/SwitchBotAPI#send-device-control-commands">send
 	 *     device control commands</a>
 	 */
-	public void sendDeviceControlCommands(String deviceId, DeviceCommand command) throws IOException {
-
+	public IApiResponse sendDeviceControlCommands(String deviceId, DeviceCommand command) throws IOException {
 		String stringCommand = provider.getMoshi().adapter(DeviceCommand.class).toJson(command);
 		try (Response response = OkHttpUtil.postSynchronous(
 				SwitchBotApi.baseUrl + "v1.1/devices/" + deviceId + "/commands",
 				RequestBody.create(URLDecoder.decode(stringCommand, StandardCharsets.UTF_8.displayName())
 						.getBytes(StandardCharsets.UTF_8)),
 				provider.addAuth())) {
-			parseResponse(response, DeviceApiResponse.class);
+			return parseResponse(response, DeviceApiResponse.class);
 		}
 	}
 
