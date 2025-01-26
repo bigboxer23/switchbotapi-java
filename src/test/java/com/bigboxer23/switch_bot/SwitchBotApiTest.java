@@ -66,6 +66,7 @@ public class SwitchBotApiTest {
 					assertTrue(status.getElectricCurrent() > -1);
 				}
 				case IDeviceTypes.WATER_DETECTOR -> assertTrue(status.isWet());
+				case IDeviceTypes.METER_PRO_CO2 -> assertTrue(status.getCo2() > 0);
 			}
 		}
 	}

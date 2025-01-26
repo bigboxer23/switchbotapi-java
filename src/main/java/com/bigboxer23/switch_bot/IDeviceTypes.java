@@ -11,4 +11,6 @@ public interface IDeviceTypes {
 	String PLUG_MINI = "Plug Mini (US)";
 
 	String WATER_DETECTOR = "Water Detector";
+
+	String METER_PRO_CO2 = "MeterPro(CO2)";
 }
