@@ -11,14 +11,13 @@ import java.util.*;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.Response;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** */
+@Slf4j
 @Getter
 public class SwitchBotApi {
-	private static final Logger logger = LoggerFactory.getLogger(SwitchBotApi.class);
 	protected static final String baseUrl = "https://api.switch-bot.com/";
 
 	private static SwitchBotApi instance;
@@ -38,7 +37,7 @@ public class SwitchBotApi {
 
 	public static SwitchBotApi getInstance(String token, String secret) {
 		if (token == null || secret == null) {
-			logger.error("need to define token and secret values.");
+			log.error("need to define token and secret values.");
 			throw new RuntimeException("need to define token and secret values.");
 		}
 		return Optional.ofNullable(instance).orElseGet(() -> {
@@ -67,7 +66,7 @@ public class SwitchBotApi {
 						.addHeader("nonce", nonce)
 						.addHeader("t", time);
 			} catch (NoSuchAlgorithmException | InvalidKeyException e) {
-				logger.warn("exception with auth: ", e);
+				log.warn("exception with auth: ", e);
 			}
 			return builder;
 		};
@@ -83,13 +82,13 @@ public class SwitchBotApi {
 		return apiResponse
 				.map(api -> {
 					if (api.getStatusCode() != 100) {
-						logger.error("error code: " + api.getStatusCode() + " : " + api.getMessage());
+						log.error("error code: " + api.getStatusCode() + " : " + api.getMessage());
 						return false;
 					}
 					return true;
 				})
 				.orElseGet(() -> {
-					logger.error("Error calling switchbot api: " + response.code() + " " + response.message());
+					log.error("Error calling switchbot api: " + response.code() + " " + response.message());
 					return false;
 				});
 	}

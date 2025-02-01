@@ -11,14 +11,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** */
+@Slf4j
 public class SwitchBotDeviceApi {
-	private static final Logger logger = LoggerFactory.getLogger(SwitchBotDeviceApi.class);
 	private final SwitchBotApi provider;
 
 	private Map<String, String> deviceIdToNames;
@@ -42,12 +41,12 @@ public class SwitchBotDeviceApi {
 			return;
 		}
 		try {
-			logger.info("Refreshing device id/name map...");
+			log.info("Refreshing device id/name map...");
 			deviceIdToNames = Collections.unmodifiableMap(
 					getDevices().stream().collect(Collectors.toMap(Device::getDeviceId, Device::getDeviceName)));
 			deviceIdToNamesCacheTime = System.currentTimeMillis();
 		} catch (IOException e) {
-			logger.error("Failed to refresh device names.", e);
+			log.error("Failed to refresh device names.", e);
 			deviceIdToNames = null;
 			deviceIdToNamesCacheTime = -1;
 		}
@@ -72,7 +71,7 @@ public class SwitchBotDeviceApi {
 	 */
 	public Device getDeviceStatus(String deviceId) throws IOException {
 		if (deviceId == null) {
-			logger.error("Need valid device id");
+			log.error("Need valid device id");
 			return null;
 		}
 		try (Response response = OkHttpUtil.getSynchronous(
