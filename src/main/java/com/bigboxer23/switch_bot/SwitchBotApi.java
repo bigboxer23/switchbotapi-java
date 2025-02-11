@@ -1,5 +1,6 @@
 package com.bigboxer23.switch_bot;
 
+import com.bigboxer23.switch_bot.data.BadApiResponse;
 import com.bigboxer23.switch_bot.data.IApiResponse;
 import com.bigboxer23.utils.http.RequestBuilderCallback;
 import com.squareup.moshi.Moshi;
@@ -78,18 +79,19 @@ public class SwitchBotApi {
 	 * @param apiResponse the API response
 	 * @return true if error occurs
 	 */
-	protected boolean checkForError(Response response, Optional<IApiResponse> apiResponse) {
+	protected IApiResponse checkForError(Response response, Optional<IApiResponse> apiResponse) {
 		return apiResponse
 				.map(api -> {
 					if (api.getStatusCode() != 100) {
 						log.error("error code: " + api.getStatusCode() + " : " + api.getMessage());
-						return false;
+						api.setSuccess(false);
+						return api;
 					}
-					return true;
+					return api;
 				})
 				.orElseGet(() -> {
 					log.error("Error calling switchbot api: " + response.code() + " " + response.message());
-					return false;
+					return new BadApiResponse(response.code(), response.message());
 				});
 	}
 }

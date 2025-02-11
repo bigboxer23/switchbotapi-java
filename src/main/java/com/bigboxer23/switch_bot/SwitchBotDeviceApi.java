@@ -106,10 +106,11 @@ public class SwitchBotDeviceApi {
 	 * @throws IOException
 	 */
 	private <T extends IApiResponse> T parseResponse(Response response, Class<T> clazz) throws IOException {
-		Optional<T> apiResponse = OkHttpUtil.getBody(response, clazz);
-		if (!provider.checkForError(response, (Optional<IApiResponse>) apiResponse)) {
-			throw new IOException(response.code() + " " + response.message());
+		IApiResponse apiResponse =
+				provider.checkForError(response, (Optional<IApiResponse>) OkHttpUtil.getBody(response, clazz));
+		if (!apiResponse.isSuccess()) {
+			throw new IOException(apiResponse.getStatusCode() + " " + apiResponse.getMessage());
 		}
-		return apiResponse.get();
+		return (T) apiResponse;
 	}
 }

@@ -10,4 +10,6 @@ public class DeviceApiResponse implements IApiResponse {
 	private Device body;
 
 	private String message;
+
+	private boolean success = true;
 }
