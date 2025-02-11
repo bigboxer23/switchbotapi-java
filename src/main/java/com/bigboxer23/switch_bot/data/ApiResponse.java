@@ -10,4 +10,6 @@ public class ApiResponse implements IApiResponse {
 	private ApiResponseBody body;
 
 	private String message;
+
+	private boolean success = true;
 }
