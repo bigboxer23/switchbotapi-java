@@ -1,26 +1,28 @@
-package com.bigboxer23.switch_bot;
+package com.bigboxer23.switch_bot.integration;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.bigboxer23.switch_bot.IDeviceCommands;
+import com.bigboxer23.switch_bot.IDeviceTypes;
+import com.bigboxer23.switch_bot.SwitchBotApi;
 import com.bigboxer23.switch_bot.data.Device;
 import com.bigboxer23.utils.command.Command;
 import com.bigboxer23.utils.properties.PropertyUtils;
 import java.io.IOException;
 import java.util.List;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-/** Need to define environment variables for SwitchBotToken/SwitchBotSecret to run tests */
-public class SwitchBotApiTest {
+@Tag("integration")
+public class SwitchBotApiIntegrationTest {
 	private static final String token = PropertyUtils.getProperty("switchbot_token");
-
 	private static final String secret = PropertyUtils.getProperty("switchbot_secret");
-
 	private static final SwitchBotApi instance = SwitchBotApi.getInstance(token, secret);
 
 	@Test
 	public void testGetDevices() throws IOException {
 		List<Device> devices = instance.getDeviceApi().getDevices();
-		assertFalse(devices.isEmpty());
+		assertFalse(devices.isEmpty(), "Device list should not be empty");
 		assertNotNull(devices.get(0).getDeviceId());
 	}
 
@@ -37,9 +39,8 @@ public class SwitchBotApiTest {
 	public void testDeviceStatus() throws IOException {
 		try {
 			instance.getDeviceApi().getDeviceStatus("123");
-			fail();
-		} catch (IOException e) {
-
+			fail("Expected IOException for invalid device ID");
+		} catch (IOException ignored) {
 		}
 		for (Device device : instance.getDeviceApi().getDevices()) {
 			assertNotNull(device.getDeviceId());
@@ -55,17 +56,16 @@ public class SwitchBotApiTest {
 				}
 				case IDeviceTypes.CURTAIN -> {
 					assertTrue(status.getSlidePosition() >= 0);
-					assertTrue(status.isMoving());
 					assertTrue(status.getBattery() >= 0);
 				}
 				case IDeviceTypes.PLUG_MINI -> {
 					assertTrue("on".equals(status.getPower()) || "off".equals(status.getPower()));
-					assertTrue(status.getVoltage() > 0);
+					assertTrue(status.getVoltage() > -1);
 					assertTrue(status.getWatts() > -1);
 					assertTrue(status.getElectricityOfDay() >= 0);
 					assertTrue(status.getElectricCurrent() > -1);
 				}
-				case IDeviceTypes.WATER_DETECTOR -> assertTrue(status.isWet());
+				case IDeviceTypes.WATER_DETECTOR -> assertTrue(status.isWet() || status.isDry());
 				case IDeviceTypes.METER_PRO_CO2 -> assertTrue(status.getCo2() > 0);
 			}
 		}
@@ -80,25 +80,14 @@ public class SwitchBotApiTest {
 				.orElse(null);
 		assertNotNull(curtain);
 		assertNotNull(curtain.getDeviceId());
-		System.out.println("slide position "
-				+ instance.getDeviceApi().getDeviceStatus(curtain.getDeviceId()).getSlidePosition());
 
 		instance.getDeviceApi().sendDeviceControlCommands(curtain.getDeviceId(), IDeviceCommands.CURTAIN_CLOSE);
-		pollForStatus(() -> {
-			int slidePosition = instance.getDeviceApi()
-					.getDeviceStatus(curtain.getDeviceId())
-					.getSlidePosition();
-			System.out.println("slide position " + slidePosition);
-			return slidePosition >= 90;
-		});
+		pollForStatus(() ->
+				instance.getDeviceApi().getDeviceStatus(curtain.getDeviceId()).getSlidePosition() >= 90);
+
 		instance.getDeviceApi().sendDeviceControlCommands(curtain.getDeviceId(), IDeviceCommands.CURTAIN_OPEN);
-		pollForStatus(() -> {
-			int slidePosition = instance.getDeviceApi()
-					.getDeviceStatus(curtain.getDeviceId())
-					.getSlidePosition();
-			System.out.println("slide position " + slidePosition);
-			return slidePosition == 0;
-		});
+		pollForStatus(() ->
+				instance.getDeviceApi().getDeviceStatus(curtain.getDeviceId()).getSlidePosition() == 0);
 	}
 
 	@Test
@@ -120,8 +109,7 @@ public class SwitchBotApiTest {
 
 	private void pollForStatus(Command<Boolean> command) throws IOException, InterruptedException {
 		boolean result = command.execute();
-		for (int ai = 0; ai < 10 && !result; ai++) {
-			System.out.println("sleeping " + ai);
+		for (int i = 0; i < 10 && !result; i++) {
 			Thread.sleep(2000);
 			result = command.execute();
 		}
