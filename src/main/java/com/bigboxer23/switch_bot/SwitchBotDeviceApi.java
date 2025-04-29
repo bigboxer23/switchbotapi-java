@@ -22,11 +22,10 @@ public class SwitchBotDeviceApi {
 
 	private Map<String, String> deviceIdToNames;
 
-	private long deviceIdToNamesCacheTime = -1;
+	protected long deviceIdToNamesCacheTime = -1;
 
 	protected SwitchBotDeviceApi(SwitchBotApi provider) {
 		this.provider = provider;
-		refreshDeviceNameMap();
 	}
 
 	public String getDeviceNameFromId(String deviceId) {
