@@ -4,7 +4,7 @@
 
   <groupId>com.bigboxer23</groupId>
   <artifactId>switchbotapi-java</artifactId>
-  <version>1.2.2</version>
+  <version>1.2.3</version>
 
   <name>switchbotapi-java</name>
   <url>https://github.com/bigboxer23/switchbotapi-java</url>
@@ -98,7 +98,7 @@
             <threadCount>4</threadCount>
             <useUnlimitedThreads>false</useUnlimitedThreads>
             <skipITs>${!integration}</skipITs>
-	          <rerunFailingTestsCount>1</rerunFailingTestsCount>
+            <rerunFailingTestsCount>1</rerunFailingTestsCount>
           </configuration>
           <executions>
             <execution>
