@@ -65,7 +65,8 @@ public class SwitchBotApi {
 				builder.addHeader("Authorization", token)
 						.addHeader("sign", signature)
 						.addHeader("nonce", nonce)
-						.addHeader("t", time);
+						.addHeader("t", time)
+						.addHeader("Content-Type", "application/json; charset=utf-8");
 			} catch (NoSuchAlgorithmException | InvalidKeyException e) {
 				log.warn("exception with auth: ", e);
 			}
