@@ -98,7 +98,7 @@
             <threadCount>4</threadCount>
             <useUnlimitedThreads>false</useUnlimitedThreads>
             <skipITs>${!integration}</skipITs>
-	          <rerunFailingTestsCount>1</rerunFailingTestsCount>
+            <rerunFailingTestsCount>1</rerunFailingTestsCount>
           </configuration>
           <executions>
             <execution>
