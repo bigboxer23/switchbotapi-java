@@ -67,6 +67,11 @@ public class SwitchBotApiIntegrationTest {
 				}
 				case IDeviceTypes.WATER_DETECTOR -> assertTrue(status.isWet() || status.isDry());
 				case IDeviceTypes.METER_PRO_CO2 -> assertTrue(status.getCo2() > 0);
+				case IDeviceTypes.ROLLER_SHADE -> {
+					assertTrue(status.isCalibrate());
+					assertNotNull(device.getGroupingDevicesIds());
+					assertNotNull(device.getGroupName());
+				}
 			}
 		}
 	}
