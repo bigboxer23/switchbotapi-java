@@ -13,4 +13,6 @@ public interface IDeviceTypes {
 	String WATER_DETECTOR = "Water Detector";
 
 	String METER_PRO_CO2 = "MeterPro(CO2)";
+
+	String ROLLER_SHADE = "Roller Shade";
 }

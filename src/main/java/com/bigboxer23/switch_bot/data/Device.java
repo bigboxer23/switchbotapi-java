@@ -3,6 +3,8 @@ package com.bigboxer23.switch_bot.data;
 import com.squareup.moshi.Json;
 import lombok.Data;
 
+import java.util.List;
+
 /** */
 @Data
 public class Device {
@@ -24,11 +26,19 @@ public class Device {
 
 	private boolean group;
 
+	private boolean master;
+
+	private String groupName;
+
+	private List<String> groupingDevicesIds;
+
+	private List<String> curtainDevicesIds;
+
+	private String openDirection;
+
 	private boolean moving;
 
 	private int slidePosition;
-
-	private boolean master;
 
 	private String power;
 
@@ -45,6 +55,12 @@ public class Device {
 
 	@Json(name = "CO2")
 	private int co2;
+
+	private boolean calibrate;
+
+	private String hubDeviceId;
+
+	private boolean enableCloudService;
 
 	public boolean isDry() {
 		return waterDetectorStatus == 0;
