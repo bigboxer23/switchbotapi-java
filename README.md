@@ -1,3 +1,7 @@
+[![CodeQL](https://github.com/bigboxer23/switchbotapi-java/actions/workflows/codeql.yml/badge.svg)](https://github.com/bigboxer23/switchbotapi-java/actions/workflows/codeql.yml)
+[![Build Status](https://github.com/bigboxer23/switchbotapi-java/actions/workflows/unittests.yml/badge.svg)](https://github.com/bigboxer23/switchbotapi-java/actions/workflows/unittests.yml)
+[![codecov](https://codecov.io/gh/bigboxer23/switchbotapi-java/branch/main/graph/badge.svg)](https://codecov.io/gh/bigboxer23/switchbotapi-java)
+
 # SwitchBotAPI-java
 
 This project provides a java wrapper over the SwitchBot API v1.1 (https://github.com/OpenWonderLabs/SwitchBotAPI)
