@@ -3,19 +3,94 @@ package com.bigboxer23.switch_bot;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.bigboxer23.switch_bot.data.Device;
-import com.bigboxer23.switch_bot.data.DeviceCommand;
+import com.bigboxer23.switch_bot.data.*;
 import com.bigboxer23.utils.time.ITimeConstants;
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
+import okhttp3.Response;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class SwitchBotApiUnitTest {
+
+	@BeforeEach
+	void resetSingleton() throws Exception {
+		java.lang.reflect.Field instanceField = SwitchBotApi.class.getDeclaredField("instance");
+		instanceField.setAccessible(true);
+		instanceField.set(null, null);
+	}
+
 	@Test
 	public void testSingletonBehavior() {
 		SwitchBotApi mockApi1 = SwitchBotApi.getInstance("token", "secret");
 		SwitchBotApi mockApi2 = SwitchBotApi.getInstance("token", "secret");
 		assertSame(mockApi1, mockApi2, "Should return the same singleton instance");
+	}
+
+	@Test
+	public void testGetInstanceWithNullToken() {
+		RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+			SwitchBotApi.getInstance(null, "secret");
+		});
+		assertEquals("need to define token and secret values.", exception.getMessage());
+	}
+
+	@Test
+	public void testGetInstanceWithNullSecret() {
+		RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+			SwitchBotApi.getInstance("token", null);
+		});
+		assertEquals("need to define token and secret values.", exception.getMessage());
+	}
+
+	@Test
+	public void testAddAuthReturnsCallback() {
+		assertNotNull(SwitchBotApi.getInstance("testToken", "testSecret"));
+	}
+
+	@Test
+	public void testCheckForErrorWithSuccessfulResponse() {
+		SwitchBotApi api = SwitchBotApi.getInstance("token", "secret");
+		Response mockResponse = mock(Response.class);
+		ApiResponse successResponse = new ApiResponse();
+		successResponse.setStatusCode(100);
+		successResponse.setMessage("success");
+
+		IApiResponse result = api.checkForError(mockResponse, Optional.of(successResponse));
+
+		assertTrue(result.isSuccess());
+		assertEquals(100, result.getStatusCode());
+	}
+
+	@Test
+	public void testCheckForErrorWithFailedResponse() {
+		SwitchBotApi api = SwitchBotApi.getInstance("token", "secret");
+		Response mockResponse = mock(Response.class);
+		ApiResponse failedResponse = new ApiResponse();
+		failedResponse.setStatusCode(190);
+		failedResponse.setMessage("Device not found");
+
+		IApiResponse result = api.checkForError(mockResponse, Optional.of(failedResponse));
+
+		assertFalse(result.isSuccess());
+		assertEquals(190, result.getStatusCode());
+		assertEquals("Device not found", result.getMessage());
+	}
+
+	@Test
+	public void testCheckForErrorWithEmptyResponse() {
+		SwitchBotApi api = SwitchBotApi.getInstance("token", "secret");
+		Response mockResponse = mock(Response.class);
+		when(mockResponse.code()).thenReturn(404);
+		when(mockResponse.message()).thenReturn("Not Found");
+
+		IApiResponse result = api.checkForError(mockResponse, Optional.empty());
+
+		assertFalse(result.isSuccess());
+		assertEquals(404, result.getStatusCode());
+		assertEquals("Not Found", result.getMessage());
+		assertInstanceOf(BadApiResponse.class, result);
 	}
 
 	@Test

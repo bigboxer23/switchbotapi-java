@@ -1,9 +1,8 @@
 package com.bigboxer23.switch_bot.data;
 
 import com.squareup.moshi.Json;
-import lombok.Data;
-
 import java.util.List;
+import lombok.Data;
 
 /** */
 @Data
