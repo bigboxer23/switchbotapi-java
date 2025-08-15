@@ -1,4 +1,4 @@
-name: Run Unit Tests
+name: Tests and Code Coverage
 
 on:
   pull_request:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   test:
-    name: Unit Tests
+    name: Run Tests and Generate Coverage
     runs-on: ubuntu-latest
 
     steps:
@@ -34,5 +34,14 @@ jobs:
             </servers>
           </settings>
           EOF
-      - name: Run Unit Tests
-        run: mvn clean test
+
+      - name: Run tests with coverage
+        run: mvn clean verify
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: target/site/jacoco/jacoco.xml
+          fail_ci_if_error: true
+          slug: bigboxer23/switchbotapi-java
