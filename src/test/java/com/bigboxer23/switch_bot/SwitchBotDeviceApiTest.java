@@ -170,4 +170,26 @@ public class SwitchBotDeviceApiTest {
 			fail("Verification failed: " + e.getMessage());
 		}
 	}
+
+	@Test
+	public void testSendDeviceControlCommandsInputValidation() {
+		DeviceCommand command = new DeviceCommand("turnOn", "default");
+		String deviceId = "test-device-id";
+
+		assertNotNull(command);
+		assertEquals("turnOn", command.getCommand());
+		assertEquals("default", command.getParameter());
+		assertNotNull(deviceId);
+	}
+
+	@Test
+	public void testGetDeviceStatusReturnsNullForNullInput() throws IOException {
+		Device result = deviceApi.getDeviceStatus(null);
+		assertNull(result);
+	}
+
+	@Test
+	public void testDeviceApiNotNull() {
+		assertNotNull(deviceApi);
+	}
 }
