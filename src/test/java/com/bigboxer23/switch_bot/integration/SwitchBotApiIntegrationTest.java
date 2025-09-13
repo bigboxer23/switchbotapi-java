@@ -6,6 +6,7 @@ import com.bigboxer23.switch_bot.IDeviceCommands;
 import com.bigboxer23.switch_bot.IDeviceTypes;
 import com.bigboxer23.switch_bot.SwitchBotApi;
 import com.bigboxer23.switch_bot.data.Device;
+import com.bigboxer23.switch_bot.data.IApiResponse;
 import com.bigboxer23.utils.command.Command;
 import com.bigboxer23.utils.properties.PropertyUtils;
 import java.io.IOException;
@@ -24,6 +25,23 @@ public class SwitchBotApiIntegrationTest {
 		List<Device> devices = instance.getDeviceApi().getDevices();
 		assertFalse(devices.isEmpty(), "Device list should not be empty");
 		assertNotNull(devices.get(0).getDeviceId());
+	}
+
+	@Test
+	public void testRollerShadeClosed() throws IOException {
+		instance.getDeviceApi().getDevices().stream()
+				.filter(device -> device.getDeviceType().equals(IDeviceTypes.ROLLER_SHADE))
+				.filter(Device::isMaster)
+				.findAny()
+				.ifPresent(device -> {
+					try {
+						IApiResponse response = instance.getDeviceApi()
+								.sendDeviceControlCommands(device.getDeviceId(), IDeviceCommands.ROLLER_SHADE_CLOSE);
+						System.out.println(response);
+					} catch (IOException theE) {
+						theE.printStackTrace();
+					}
+				});
 	}
 
 	@Test

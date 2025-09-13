@@ -166,4 +166,78 @@ public class DeviceCommandTest {
 		assertEquals(originalCommand.getParameter(), deserializedCommand.getParameter());
 		assertEquals(originalCommand.getCommandType(), deserializedCommand.getCommandType());
 	}
+
+	@Test
+	public void testDeviceCommandConstructorWithIntegerParameter() {
+		DeviceCommand command = new DeviceCommand("setPosition", 75);
+
+		assertEquals("setPosition", command.getCommand());
+		assertEquals(75, command.getParameter());
+		assertEquals("command", command.getCommandType());
+	}
+
+	@Test
+	public void testDeviceCommandConstructorWithZeroIntegerParameter() {
+		DeviceCommand command = new DeviceCommand("setPosition", 0);
+
+		assertEquals("setPosition", command.getCommand());
+		assertEquals(0, command.getParameter());
+		assertEquals("command", command.getCommandType());
+	}
+
+	@Test
+	public void testDeviceCommandConstructorWithNegativeIntegerParameter() {
+		DeviceCommand command = new DeviceCommand("setPosition", -10);
+
+		assertEquals("setPosition", command.getCommand());
+		assertEquals(-10, command.getParameter());
+		assertEquals("command", command.getCommandType());
+	}
+
+	@Test
+	public void testDeviceCommandJsonSerializationWithIntegerParameter() throws IOException {
+		DeviceCommand command = new DeviceCommand("setPosition", 50);
+
+		String json = adapter.toJson(command);
+
+		assertNotNull(json);
+		assertTrue(json.contains("\"command\":\"setPosition\""));
+		assertTrue(json.contains("\"parameter\":50"));
+		assertFalse(json.contains("\"parameter\":\"50\""));
+		assertTrue(json.contains("\"commandType\":\"command\""));
+	}
+
+	@Test
+	public void testDeviceCommandJsonSerializationIntegerVsString() throws IOException {
+		DeviceCommand intCommand = new DeviceCommand("setPosition", 75);
+		DeviceCommand stringCommand = new DeviceCommand("setPosition", "75");
+
+		String intJson = adapter.toJson(intCommand);
+		String stringJson = adapter.toJson(stringCommand);
+
+		assertTrue(intJson.contains("\"parameter\":75"));
+		assertTrue(stringJson.contains("\"parameter\":\"75\""));
+		assertNotEquals(intJson, stringJson);
+	}
+
+	@Test
+	public void testDeviceCommandEqualsWithIntegerParameter() {
+		DeviceCommand command1 = new DeviceCommand("setPosition", 100);
+		DeviceCommand command2 = new DeviceCommand("setPosition", 100);
+		DeviceCommand command3 = new DeviceCommand("setPosition", 50);
+
+		assertEquals(command1, command2);
+		assertEquals(command1.hashCode(), command2.hashCode());
+		assertNotEquals(command1, command3);
+		assertNotEquals(command1.hashCode(), command3.hashCode());
+	}
+
+	@Test
+	public void testDeviceCommandIntegerAndStringParametersNotEqual() {
+		DeviceCommand intCommand = new DeviceCommand("setPosition", 100);
+		DeviceCommand stringCommand = new DeviceCommand("setPosition", "100");
+
+		assertNotEquals(intCommand, stringCommand);
+		assertNotEquals(intCommand.hashCode(), stringCommand.hashCode());
+	}
 }

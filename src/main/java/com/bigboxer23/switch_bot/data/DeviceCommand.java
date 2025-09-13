@@ -11,7 +11,13 @@ public class DeviceCommand {
 		this.parameter = parameter;
 	}
 
+	public DeviceCommand(String command, int parameter) {
+		this.command = command;
+		this.commandType = "command";
+		this.parameter = parameter;
+	}
+
 	private String commandType;
 	private String command;
-	private String parameter;
+	private Object parameter;
 }
