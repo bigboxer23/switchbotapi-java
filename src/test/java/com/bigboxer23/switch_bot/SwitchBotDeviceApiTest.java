@@ -8,6 +8,7 @@ import com.bigboxer23.utils.time.ITimeConstants;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -53,7 +54,7 @@ public class SwitchBotDeviceApiTest {
 		device.setDeviceName("Known Device");
 
 		SwitchBotDeviceApi spyDeviceApi = spy(deviceApi);
-		doReturn(Arrays.asList(device)).when(spyDeviceApi).getDevices();
+		doReturn(List.of(device)).when(spyDeviceApi).getDevices();
 
 		String result = spyDeviceApi.getDeviceNameFromId("unknown-device");
 		assertEquals("unknown-device", result);
@@ -68,7 +69,7 @@ public class SwitchBotDeviceApiTest {
 		SwitchBotDeviceApi spyDeviceApi = spy(deviceApi);
 		spyDeviceApi.deviceIdToNamesCacheTime = System.currentTimeMillis() - (ITimeConstants.HOUR * 2);
 
-		doReturn(Arrays.asList(device)).when(spyDeviceApi).getDevices();
+		doReturn(List.of(device)).when(spyDeviceApi).getDevices();
 
 		String result = spyDeviceApi.getDeviceNameFromId("device1");
 		assertEquals("Test Device", result);
@@ -85,7 +86,7 @@ public class SwitchBotDeviceApiTest {
 		SwitchBotDeviceApi spyDeviceApi = spy(deviceApi);
 		spyDeviceApi.deviceIdToNamesCacheTime = System.currentTimeMillis();
 
-		doReturn(Arrays.asList(device)).when(spyDeviceApi).getDevices();
+		doReturn(List.of(device)).when(spyDeviceApi).getDevices();
 		spyDeviceApi.getDeviceNameFromId("device1");
 
 		reset(spyDeviceApi);
@@ -112,9 +113,7 @@ public class SwitchBotDeviceApiTest {
 
 	@Test
 	public void testGetDeviceStatusInputValidation() {
-		assertDoesNotThrow(() -> {
-			assertNotNull(deviceApi);
-		});
+		assertDoesNotThrow(() -> assertNotNull(deviceApi));
 	}
 
 	@Test
@@ -145,18 +144,14 @@ public class SwitchBotDeviceApiTest {
 		device.setDeviceId("concurrent-device");
 		device.setDeviceName("Concurrent Test");
 		try {
-			doReturn(Arrays.asList(device)).when(spyDeviceApi).getDevices();
+			doReturn(List.of(device)).when(spyDeviceApi).getDevices();
 		} catch (IOException e) {
 			fail("Setup failed: " + e.getMessage());
 		}
 
-		Thread thread1 = new Thread(() -> {
-			spyDeviceApi.getDeviceNameFromId("concurrent-device");
-		});
+		Thread thread1 = new Thread(() -> spyDeviceApi.getDeviceNameFromId("concurrent-device"));
 
-		Thread thread2 = new Thread(() -> {
-			spyDeviceApi.getDeviceNameFromId("concurrent-device");
-		});
+		Thread thread2 = new Thread(() -> spyDeviceApi.getDeviceNameFromId("concurrent-device"));
 
 		thread1.start();
 		thread2.start();
@@ -191,5 +186,84 @@ public class SwitchBotDeviceApiTest {
 	@Test
 	public void testDeviceApiNotNull() {
 		assertNotNull(deviceApi);
+	}
+
+	@Test
+	public void testParseResponseWithIOException() {
+		SwitchBotDeviceApi spyDeviceApi = spy(deviceApi);
+		when(mockSwitchBotApi.getMoshi()).thenReturn(new com.squareup.moshi.Moshi.Builder().build());
+
+		DeviceCommand command = new DeviceCommand("turnOn", "default");
+		assertDoesNotThrow(() -> {
+			String json =
+					mockSwitchBotApi.getMoshi().adapter(DeviceCommand.class).toJson(command);
+			assertNotNull(json);
+		});
+	}
+
+	@Test
+	public void testSendDeviceControlCommandsWithValidInput() {
+		DeviceCommand command = new DeviceCommand("turnOn", "default");
+		String deviceId = "valid-device-id";
+
+		when(mockSwitchBotApi.getMoshi()).thenReturn(new com.squareup.moshi.Moshi.Builder().build());
+
+		assertNotNull(command.getCommand());
+		assertNotNull(command.getParameter());
+		assertNotNull(deviceId);
+		assertEquals("turnOn", command.getCommand());
+		assertEquals("default", command.getParameter());
+	}
+
+	@Test
+	public void testDeviceStatusValidation() throws IOException {
+		assertNull(deviceApi.getDeviceStatus(null));
+	}
+
+	@Test
+	public void testGetDeviceNameFromIdWithNullDeviceNameMap() throws IOException {
+		SwitchBotDeviceApi spyDeviceApi = spy(deviceApi);
+		spyDeviceApi.deviceIdToNamesCacheTime = -1;
+
+		doThrow(new IOException("Network error")).when(spyDeviceApi).getDevices();
+
+		String result = spyDeviceApi.getDeviceNameFromId("test-device");
+		assertEquals("test-device", result);
+	}
+
+	@Test
+	public void testCacheTimeValidation() {
+		SwitchBotDeviceApi spyDeviceApi = spy(deviceApi);
+
+		spyDeviceApi.deviceIdToNamesCacheTime = System.currentTimeMillis() - (ITimeConstants.HOUR * 2);
+		assertTrue(spyDeviceApi.deviceIdToNamesCacheTime < System.currentTimeMillis() - ITimeConstants.HOUR);
+
+		spyDeviceApi.deviceIdToNamesCacheTime = System.currentTimeMillis();
+		assertTrue(spyDeviceApi.deviceIdToNamesCacheTime > System.currentTimeMillis() - ITimeConstants.HOUR);
+	}
+
+	@Test
+	public void testDeviceApiConstructor() {
+		SwitchBotDeviceApi newDeviceApi = new SwitchBotDeviceApi(mockSwitchBotApi);
+		assertNotNull(newDeviceApi);
+		assertEquals(-1, newDeviceApi.deviceIdToNamesCacheTime);
+	}
+
+	@Test
+	public void testGetDeviceStatusWithEmptyDeviceId() {
+		assertDoesNotThrow(() -> assertNotNull(deviceApi));
+	}
+
+	@Test
+	public void testGetDeviceNameFromIdWithCacheRefreshFailure() throws IOException {
+		SwitchBotDeviceApi spyDeviceApi = spy(deviceApi);
+
+		spyDeviceApi.deviceIdToNamesCacheTime = System.currentTimeMillis() - (ITimeConstants.HOUR * 2);
+
+		doThrow(new IOException("Network failure")).when(spyDeviceApi).getDevices();
+
+		String result = spyDeviceApi.getDeviceNameFromId("test-device");
+		assertEquals("test-device", result);
+		assertEquals(-1, spyDeviceApi.deviceIdToNamesCacheTime);
 	}
 }

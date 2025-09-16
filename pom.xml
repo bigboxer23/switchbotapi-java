@@ -19,6 +19,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <java.version>17</java.version>
+    <lombok.version>1.18.40</lombok.version>
   </properties>
 
   <dependencies>
@@ -48,7 +49,7 @@
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
-      <version>1.18.40</version>
+      <version>${lombok.version}</version>
     </dependency>
     <dependency>
       <groupId>com.squareup.moshi</groupId>
@@ -82,6 +83,13 @@
           <version>3.14.0</version>
           <configuration>
             <release>17</release>
+            <annotationProcessorPaths>
+              <path>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+              </path>
+            </annotationProcessorPaths>
           </configuration>
         </plugin>
         <plugin>
