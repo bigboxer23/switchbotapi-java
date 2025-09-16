@@ -30,17 +30,15 @@ public class SwitchBotApiUnitTest {
 
 	@Test
 	public void testGetInstanceWithNullToken() {
-		RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-			SwitchBotApi.getInstance(null, "secret");
-		});
+		RuntimeException exception =
+				assertThrows(RuntimeException.class, () -> SwitchBotApi.getInstance(null, "secret"));
 		assertEquals("need to define token and secret values.", exception.getMessage());
 	}
 
 	@Test
 	public void testGetInstanceWithNullSecret() {
-		RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-			SwitchBotApi.getInstance("token", null);
-		});
+		RuntimeException exception =
+				assertThrows(RuntimeException.class, () -> SwitchBotApi.getInstance("token", null));
 		assertEquals("need to define token and secret values.", exception.getMessage());
 	}
 
@@ -129,5 +127,50 @@ public class SwitchBotApiUnitTest {
 		reset(deviceApi);
 		deviceApi.getDeviceNameFromId("12345");
 		verify(deviceApi, times(0)).getDevices();
+	}
+
+	@Test
+	public void testAddAuthCreatesValidHeaders() {
+		SwitchBotApi api = SwitchBotApi.getInstance("testToken", "testSecret");
+		com.bigboxer23.utils.http.RequestBuilderCallback callback = api.addAuth();
+
+		assertNotNull(callback);
+	}
+
+	@Test
+	public void testAddAuthWithRequestBuilder() {
+		SwitchBotApi api = SwitchBotApi.getInstance("testToken", "testSecret");
+		com.bigboxer23.utils.http.RequestBuilderCallback callback = api.addAuth();
+
+		okhttp3.Request.Builder mockBuilder = mock(okhttp3.Request.Builder.class);
+		when(mockBuilder.addHeader(anyString(), anyString())).thenReturn(mockBuilder);
+
+		okhttp3.Request.Builder result = callback.modifyBuilder(mockBuilder);
+
+		assertNotNull(result);
+		verify(mockBuilder, times(5)).addHeader(anyString(), anyString());
+	}
+
+	@Test
+	public void testGetMoshiReturnsInstance() {
+		SwitchBotApi api = SwitchBotApi.getInstance("testToken", "testSecret");
+		com.squareup.moshi.Moshi moshi = api.getMoshi();
+
+		assertNotNull(moshi);
+		assertSame(moshi, api.getMoshi(), "Should return the same Moshi instance");
+	}
+
+	@Test
+	public void testGetDeviceApiReturnsInstance() {
+		SwitchBotApi api = SwitchBotApi.getInstance("testToken", "testSecret");
+		SwitchBotDeviceApi deviceApi = api.getDeviceApi();
+
+		assertNotNull(deviceApi);
+		assertSame(deviceApi, api.getDeviceApi(), "Should return the same DeviceApi instance");
+	}
+
+	@Test
+	public void testBaseUrlConstant() {
+		assertEquals("https://api.switch-bot.com/", SwitchBotApi.baseUrl);
 	}
 }
