@@ -264,6 +264,57 @@ public class SwitchBotDeviceApiTest {
 
 		String result = spyDeviceApi.getDeviceNameFromId("test-device");
 		assertEquals("test-device", result);
-		assertEquals(-1, spyDeviceApi.deviceIdToNamesCacheTime);
+		assertTrue(spyDeviceApi.deviceIdToNamesRetryTime > System.currentTimeMillis());
+	}
+
+	/**
+	 * A failed refresh used to drop the cache, so every later lookup asked for the device list
+	 * again. That turns a rate limited api into a request loop, exactly when we can least afford it.
+	 */
+	@Test
+	public void testCacheRefreshFailureDoesNotRequestDeviceListOnEveryLookup() throws IOException {
+		SwitchBotDeviceApi spyDeviceApi = spy(deviceApi);
+		doThrow(new IOException("429 rate limited")).when(spyDeviceApi).getDevices();
+
+		for (int i = 0; i < 10; i++) {
+			assertEquals("test-device", spyDeviceApi.getDeviceNameFromId("test-device"));
+		}
+
+		verify(spyDeviceApi, times(1)).getDevices();
+	}
+
+	@Test
+	public void testCacheRefreshFailureRetainsPreviouslyCachedNames() throws IOException {
+		Device device = new Device();
+		device.setDeviceId("device1");
+		device.setDeviceName("Living Room Light");
+
+		SwitchBotDeviceApi spyDeviceApi = spy(deviceApi);
+		doReturn(List.of(device)).when(spyDeviceApi).getDevices();
+		assertEquals("Living Room Light", spyDeviceApi.getDeviceNameFromId("device1"));
+
+		// expire the cache, then fail the refresh
+		spyDeviceApi.deviceIdToNamesCacheTime = System.currentTimeMillis() - (ITimeConstants.HOUR * 2);
+		doThrow(new IOException("429 rate limited")).when(spyDeviceApi).getDevices();
+
+		assertEquals("Living Room Light", spyDeviceApi.getDeviceNameFromId("device1"));
+	}
+
+	@Test
+	public void testCacheRefreshResumesAfterBackoffWindow() throws IOException {
+		Device device = new Device();
+		device.setDeviceId("device1");
+		device.setDeviceName("Living Room Light");
+
+		SwitchBotDeviceApi spyDeviceApi = spy(deviceApi);
+		doThrow(new IOException("429 rate limited")).when(spyDeviceApi).getDevices();
+		assertEquals("device1", spyDeviceApi.getDeviceNameFromId("device1"));
+
+		// pretend the backoff window has passed
+		spyDeviceApi.deviceIdToNamesRetryTime = System.currentTimeMillis() - 1;
+		doReturn(List.of(device)).when(spyDeviceApi).getDevices();
+
+		assertEquals("Living Room Light", spyDeviceApi.getDeviceNameFromId("device1"));
+		assertEquals(-1, spyDeviceApi.deviceIdToNamesRetryTime);
 	}
 }

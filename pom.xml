@@ -4,7 +4,7 @@
 
   <groupId>com.bigboxer23</groupId>
   <artifactId>switchbotapi-java</artifactId>
-  <version>1.2.5</version>
+  <version>1.2.6</version>
 
   <name>switchbotapi-java</name>
   <url>https://github.com/bigboxer23/switchbotapi-java</url>
@@ -44,7 +44,7 @@
     <dependency>
       <groupId>com.bigboxer23</groupId>
       <artifactId>utils</artifactId>
-      <version>2.4.0</version>
+      <version>2.5.0</version>
     </dependency>
     <dependency>
       <groupId>org.projectlombok</groupId>
@@ -192,13 +192,8 @@
         <version>3.9.0</version>
         <configuration>
           <java>
-            <googleJavaFormat>
-              <version>1.17.0</version>
-              <style>AOSP</style>
-              <reflowLongStrings>true</reflowLongStrings>
-            </googleJavaFormat>
             <palantirJavaFormat>
-              <version>2.35.0</version>
+              <version>2.96.0</version>
             </palantirJavaFormat>
             <indent>
               <tabs>true</tabs>
