@@ -1,6 +1,7 @@
 package com.bigboxer23.switch_bot;
 
 import com.bigboxer23.switch_bot.data.*;
+import com.bigboxer23.utils.command.NonRetryableException;
 import com.bigboxer23.utils.http.OkHttpUtil;
 import com.bigboxer23.utils.time.ITimeConstants;
 import java.io.IOException;
@@ -20,9 +21,15 @@ import okhttp3.Response;
 public class SwitchBotDeviceApi {
 	private final SwitchBotApi provider;
 
+	protected static final int HTTP_TOO_MANY_REQUESTS = 429;
+
+	protected static final long DEVICE_NAME_REFRESH_BACKOFF = ITimeConstants.MINUTE * 5;
+
 	private Map<String, String> deviceIdToNames;
 
 	protected long deviceIdToNamesCacheTime = -1;
+
+	protected long deviceIdToNamesRetryTime = -1;
 
 	protected SwitchBotDeviceApi(SwitchBotApi provider) {
 		this.provider = provider;
@@ -39,15 +46,19 @@ public class SwitchBotDeviceApi {
 		if (deviceIdToNames != null && (System.currentTimeMillis() - ITimeConstants.HOUR) < deviceIdToNamesCacheTime) {
 			return;
 		}
+		if (System.currentTimeMillis() < deviceIdToNamesRetryTime) {
+			return;
+		}
 		try {
 			log.info("Refreshing device id/name map...");
 			deviceIdToNames = Collections.unmodifiableMap(
 					getDevices().stream().collect(Collectors.toMap(Device::getDeviceId, Device::getDeviceName)));
 			deviceIdToNamesCacheTime = System.currentTimeMillis();
+			deviceIdToNamesRetryTime = -1;
 		} catch (IOException e) {
-			log.error("Failed to refresh device names.", e);
-			deviceIdToNames = null;
-			deviceIdToNamesCacheTime = -1;
+			log.error(
+					"Failed to refresh device names, retrying no sooner than " + DEVICE_NAME_REFRESH_BACKOFF + "ms", e);
+			deviceIdToNamesRetryTime = System.currentTimeMillis() + DEVICE_NAME_REFRESH_BACKOFF;
 		}
 	}
 
@@ -105,6 +116,10 @@ public class SwitchBotDeviceApi {
 	 * @throws IOException
 	 */
 	private <T extends IApiResponse> T parseResponse(Response response, Class<T> clazz) throws IOException {
+		if (response != null && response.code() == HTTP_TOO_MANY_REQUESTS) {
+			log.error("rate limited by the switchbot api: " + response.code() + " " + response.message());
+			throw new NonRetryableException("rate limited " + response.code() + " " + response.message());
+		}
 		IApiResponse apiResponse =
 				provider.checkForError(response, (Optional<IApiResponse>) OkHttpUtil.getBody(response, clazz));
 		if (!apiResponse.isSuccess()) {

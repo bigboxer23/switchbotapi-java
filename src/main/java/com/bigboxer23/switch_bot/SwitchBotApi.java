@@ -36,7 +36,7 @@ public class SwitchBotApi {
 		deviceApi = new SwitchBotDeviceApi(this);
 	}
 
-	public static SwitchBotApi getInstance(String token, String secret) {
+	public static synchronized SwitchBotApi getInstance(String token, String secret) {
 		if (token == null || secret == null) {
 			log.error("need to define token and secret values.");
 			throw new RuntimeException("need to define token and secret values.");
